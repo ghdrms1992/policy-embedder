@@ -19,13 +19,13 @@
 
 ```mermaid
 graph TD
-    subgraph "1. 공부 단계 (Ingestion)"
+    subgraph "색인 단계 (Indexing)"
         A[PPTX 파일] -->|파싱| B(자연어 텍스트)
         B -->|임베딩 모델| C(벡터 배열)
         C -->|DB 저장| D[(Neon PostgreSQL)]
     end
 
-    subgraph "2. 답변 단계 (Q&A)"
+    subgraph "답변 단계 (Q&A)"
         E[사용자 질문] -->|임베딩 모델| F(질문 벡터)
         F -->|벡터 검색| D
         D -->|참고 자료| G{챗 모델}
