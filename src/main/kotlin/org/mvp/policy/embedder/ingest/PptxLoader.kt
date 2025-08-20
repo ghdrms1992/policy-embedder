@@ -1,4 +1,4 @@
-package org.mvp.policy.policy.embedder.ingest
+package org.mvp.policy.embedder.ingest
 
 import org.apache.poi.xslf.usermodel.XMLSlideShow
 import org.apache.poi.xslf.usermodel.XSLFShape

@@ -1,4 +1,4 @@
-package org.mvp.policy.policy.embedder.qa
+package org.mvp.policy.embedder.qa
 
 import org.springframework.stereotype.Service
 import org.springframework.ai.chat.model.ChatModel

@@ -1,4 +1,4 @@
-package org.mvp.policy.policy.embedder.qa
+package org.mvp.policy.embedder.qa
 
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody

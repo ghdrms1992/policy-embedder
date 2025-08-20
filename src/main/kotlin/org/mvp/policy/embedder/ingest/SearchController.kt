@@ -1,4 +1,4 @@
-package org.mvp.policy.policy.embedder.ingest
+package org.mvp.policy.embedder.ingest
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.springframework.web.bind.annotation.GetMapping

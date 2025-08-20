@@ -1,4 +1,4 @@
-package org.mvp.policy.policy.embedder.ingest
+package org.mvp.policy.embedder.ingest
 
 import org.springframework.ai.document.Document
 import org.springframework.ai.transformer.splitter.TokenTextSplitter

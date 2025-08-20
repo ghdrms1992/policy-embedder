@@ -1,4 +1,4 @@
-package org.mvp.policy.policy.embedder
+package org.mvp.policy.embedder
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
