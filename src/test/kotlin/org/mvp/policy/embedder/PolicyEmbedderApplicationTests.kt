@@ -1,4 +1,4 @@
-package org.mvp.policy.policy.embedder
+package org.mvp.policy.embedder
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest

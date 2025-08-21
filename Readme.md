@@ -53,36 +53,57 @@ graph TD
 
 ### 1. 정책 문서 업로드
 
-- `POST /api/ingest`
+- `POST /ingest/pptx`
 - PPTX 문서를 업로드하여 데이터베이스에 임베딩 및 저장합니다.
 
 | 구분 | 설명 | 예시 |
 | :--- | :--- | :--- |
-| **URL** | `/api/ingest` | |
+| **URL** | `/ingest/pptx` | |
 | **Method** | `POST` | |
 | **Content-Type** | `multipart/form-data` | |
-| **Request** | `file` (form-data key) | `policy.pptx` |
+| **Request** | `file` (form-data key)<br>`title` (required)<br>`version` (optional) | `policy.pptx`<br>`"회사 정책서"`<br>`"v1.0"` |
 
 **cURL 예시:**
 ```bash
-curl -X POST http://localhost:8080/api/ingest \
-  -F "file=@/경로/내/policy.pptx"
+curl -X POST http://localhost:8080/ingest/pptx \
+  -F "file=@/경로/내/policy.pptx" \
+  -F "title=회사 정책서" \
+  -F "version=v1.0"
 ```
 
 ### 2. 질의응답
 
-- `GET /api/ask`
+- `POST /ask`
 - 저장된 문서 기반으로 질문에 대한 답변을 요청합니다.
 
 | 구분 | 설명 | 예시 |
 | :--- | :--- | :--- |
-| **URL** | `/api/ask` | |
-| **Method** | `GET` | |
-| **Query Param** | `query` (string) | `연차 사용 규정이 어떻게 되나요?` |
+| **URL** | `/ask` | |
+| **Method** | `POST` | |
+| **Content-Type** | `application/json` | |
+| **Request Body** | `q` (string, required)<br>`k` (int, optional, default: 6)<br>`version` (string, optional) | `{"q": "연차 사용 규정이 어떻게 되나요?", "k": 5}` |
 
 **cURL 예시:**
 ```bash
-curl -X GET "http://localhost:8080/api/ask?query=연차+사용+규정이+어떻게+되나요"
+curl -X POST http://localhost:8080/ask \
+  -H "Content-Type: application/json" \
+  -d '{"q": "연차 사용 규정이 어떻게 되나요?", "k": 5}'
+```
+
+### 3. 문서 검색 (선택적)
+
+- `GET /search`
+- 저장된 문서에서 유사도 검색을 수행합니다.
+
+| 구분 | 설명 | 예시 |
+| :--- | :--- | :--- |
+| **URL** | `/search` | |
+| **Method** | `GET` | |
+| **Query Param** | `q` (string, required)<br>`k` (int, optional, default: 5) | `연차` |
+
+**cURL 예시:**
+```bash
+curl -X GET "http://localhost:8080/search?q=연차&k=3"
 ```
 
 <br>
