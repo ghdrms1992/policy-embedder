@@ -2,8 +2,8 @@ server:
   port: 8080
 spring:
   datasource:
-    url: jdbc:postgresql://ep-odd-lake-a1oxuhla-pooler.ap-southeast-1.aws.neon.tech:5432/neondb
-    username: neondb_owner
+    url: ${DATA_SOURCE_URL:}
+    username: ${DATA_SOURCE_USERNAME:}
     password: ${DATA_SOURCE_PASSWORD:}
   ai:
     openai:
@@ -17,9 +17,9 @@ spring:
           temperature: 0.2
     vectorstore:
       pgvector:
-        initialize-schema: true
-        schema-name: public
-        table-name: policy_store
+        # initialize-schema: true
+        schema-name: ${DATA_SOURCE_SCHEMA:}
+        table-name: vector_store
         dimensions: 1536
         index-type: HNSW
         distance-type: COSINE_DISTANCE
