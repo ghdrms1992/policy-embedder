@@ -43,7 +43,7 @@ graph TD
 | **언어** | Kotlin |
 | **프레임워크** | Spring Boot 3, Spring AI |
 | **데이터베이스** | **PostgreSQL (on Neon) with pgvector** |
-| **AI 모델** | OpenAI (Embedding & Chat) |
+| **AI 모델** | OpenAI (text-embedding-3-small, gpt-4.1-mini) |
 | **빌드 도구** | Gradle |
 | **컨테이너** | Docker |
 
@@ -130,9 +130,19 @@ curl -X GET "http://localhost:8080/search?q=연차&k=3"
 애플리케이션은 `application.yml`에 정의된 대로 환경 변수를 통해 주요 설정값을 주입받습니다. 아래 변수들을 실행 환경에 맞게 설정해주세요.
 
 - `OPENAI_API_KEY`: OpenAI에서 발급받은 API 키
-- `DATA_SOURCE_PASSWORD`: Neon 데이터베이스 접속 비밀번호
+- `DATA_SOURCE_URL`: 데이터베이스 연결 URL (PostgreSQL JDBC 형식)
+- `DATA_SOURCE_USERNAME`: 데이터베이스 사용자명
+- `DATA_SOURCE_PASSWORD`: 데이터베이스 접속 비밀번호
+- `DATA_SOURCE_SCHEMA`: 벡터 저장소 스키마명 (pgvector 테이블이 생성될 스키마)
 
-> **참고**: `application.yml`의 `spring.datasource.url`과 `username`은 Neon 프로젝트의 값으로 이미 설정되어 있습니다. 만약 다른 DB를 사용한다면 이 부분도 환경 변수로 관리하는 것을 권장합니다.
+**환경 변수 설정 예시:**
+```bash
+export OPENAI_API_KEY="sk-..."
+export DATA_SOURCE_URL="jdbc:postgresql://your-host:5432/your-database"
+export DATA_SOURCE_USERNAME="your-username"
+export DATA_SOURCE_PASSWORD="your-password"
+export DATA_SOURCE_SCHEMA="public"
+```
 
 ### 4단계: 애플리케이션 실행
 
@@ -141,7 +151,10 @@ curl -X GET "http://localhost:8080/search?q=연차&k=3"
 ```bash
 # 필요한 환경 변수를 먼저 export 합니다.
 export OPENAI_API_KEY="sk-..."
-export DATA_SOURCE_PASSWORD="your_db_password"
+export DATA_SOURCE_URL="jdbc:postgresql://your-host:5432/your-database"
+export DATA_SOURCE_USERNAME="your-username"
+export DATA_SOURCE_PASSWORD="your-password"
+export DATA_SOURCE_SCHEMA="public"
 
 # Gradle Wrapper를 사용하여 애플리케이션을 실행합니다.
 ./gradlew bootRun
@@ -159,6 +172,64 @@ docker build -t policy-embedder .
 # 3. 환경 변수와 함께 Docker 컨테이너를 실행합니다.
 docker run -p 8080:8080 \
   -e OPENAI_API_KEY="sk-..." \
-  -e DATA_SOURCE_PASSWORD="your_db_password" \
+  -e DATA_SOURCE_URL="jdbc:postgresql://your-host:5432/your-database" \
+  -e DATA_SOURCE_USERNAME="your-username" \
+  -e DATA_SOURCE_PASSWORD="your-password" \
+  -e DATA_SOURCE_SCHEMA="public" \
   policy-embedder
 ```
+
+<br>
+
+## 📁 프로젝트 구조
+
+```
+src/main/kotlin/org/mvp/policy/embedder/
+├── PolicyEmbedderApplication.kt        # 메인 애플리케이션 클래스
+├── config/
+│   └── WebMvcConfig.kt                 # Web MVC 설정
+├── ingest/                             # 문서 수집 및 임베딩 처리
+│   ├── IngestController.kt             # PPTX 업로드 API
+│   ├── IngestService.kt                # 문서 처리 및 벡터스토어 저장 로직
+│   ├── PptxLoader.kt                   # PPTX 파싱 (슬라이드, 표, 노트 포함)
+│   └── SearchController.kt             # 벡터 검색 API
+└── qa/                                 # 질의응답 처리
+    ├── AskController.kt                # Q&A API 엔드포인트
+    └── QaService.kt                    # RAG 기반 답변 생성 로직
+```
+
+<br>
+
+## ⚡ 주요 기능 상세
+
+### 📄 PPTX 문서 처리 (PptxLoader)
+- **슬라이드 본문**: 텍스트 도형에서 텍스트 추출
+- **표 데이터**: 표를 마크다운 형식으로 변환하여 구조화
+- **슬라이드 노트**: 발표자 노트 정보 추출
+- **메타데이터**: 제목, 버전, 섹션 정보 포함
+
+### 🧠 임베딩 및 벡터 저장 (IngestService)
+- **토큰 기반 청킹**: 800토큰 단위로 문서 분할
+- **자동 임베딩**: OpenAI text-embedding-3-small 모델 사용
+- **pgvector 저장**: PostgreSQL의 pgvector 확장을 통한 벡터 저장
+- **메타데이터 보존**: 문서 출처 정보 유지
+
+### 💬 지능형 Q&A (QaService)
+- **의미 기반 검색**: 사용자 질문과 유사한 문서 청크 검색
+- **버전 필터링**: 특정 정책 버전으로 검색 결과 제한 가능
+- **컨텍스트 구성**: 최대 8개 문서, 8000자 제한으로 최적화
+- **신뢰성 있는 답변**: GPT-4.1-mini를 통한 정확한 답변 생성
+
+<br>
+
+## 🔧 설정 세부사항
+
+### OpenAI 모델 설정
+- **임베딩 모델**: text-embedding-3-small (1536차원)
+- **채팅 모델**: gpt-4.1-mini (temperature: 0.2)
+
+### pgvector 설정
+- **테이블명**: vector_store
+- **인덱스 타입**: HNSW (Hierarchical Navigable Small World)
+- **거리 측정**: COSINE_DISTANCE
+- **파일 업로드**: 최대 200MB
