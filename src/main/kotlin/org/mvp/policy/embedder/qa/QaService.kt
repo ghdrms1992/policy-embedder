@@ -1,10 +1,7 @@
 package org.mvp.policy.embedder.qa
 
 import org.springframework.stereotype.Service
-import org.springframework.ai.chat.model.ChatModel
-import org.springframework.ai.chat.messages.SystemMessage
-import org.springframework.ai.chat.messages.UserMessage
-import org.springframework.ai.chat.prompt.Prompt
+import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.vectorstore.VectorStore
 import org.springframework.ai.vectorstore.SearchRequest
 import org.springframework.ai.document.Document
@@ -12,7 +9,7 @@ import org.springframework.ai.document.Document
 @Service
 class QaService(
     private val vectorStore: VectorStore,
-    private val chatModel: ChatModel
+    private val chatClient: ChatClient
 ) {
     fun answer(q: String, k: Int, version: String?): Pair<String, List<Document>> {
         // 1) 벡터 검색
@@ -33,19 +30,11 @@ class QaService(
         // 3) 컨텍스트 구성
         val ctx = buildContext(filtered)
 
-        // 4) LLM 호출
-        val sys = SystemMessage(
-            """
-            당신은 '정책서 기반 QA' 어시스턴트입니다.
-            - 제공된 컨텍스트 범위 내에서만 답하십시오.
-            - 불명확하거나 근거가 없으면 '해당 정책에서 확인되지 않습니다'라고 답하십시오.
-            - 답변 내에 출처를 언급하지 말고 마지막에 따로 분리해서 표기하십시오.
-            """.trimIndent()
-        )
-        val user = UserMessage("질문: $q\n\n다음 컨텍스트만 사용:\n$ctx")
-
-        val resp = chatModel.call(Prompt(listOf(sys, user)))
-        val answer = resp.result.output.text ?: ""
+        // 4) LLM 호출 (ChatClient API 사용)
+        val answer = chatClient.prompt()
+            .user("질문: $q\n\n다음 컨텍스트만 사용:\n$ctx")
+            .call()
+            .content() ?: ""
         return answer to filtered
     }
 
