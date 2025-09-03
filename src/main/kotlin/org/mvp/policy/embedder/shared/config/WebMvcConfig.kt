@@ -1,4 +1,4 @@
-package org.mvp.policy.embedder.config
+package org.mvp.policy.embedder.shared.config
 
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.config.annotation.CorsRegistry

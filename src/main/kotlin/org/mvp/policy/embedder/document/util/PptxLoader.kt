@@ -1,4 +1,4 @@
-package org.mvp.policy.embedder.ingest
+package org.mvp.policy.embedder.document.util
 
 import org.apache.poi.xslf.usermodel.XMLSlideShow
 import org.apache.poi.xslf.usermodel.XSLFShape
@@ -12,11 +12,11 @@ class PptxLoader {
     /**
      * PPTX -> [Document] 목록 (슬라이드 본문/표/노트 각각 1개 문서). 메타데이터 포함.
      */
-    fun load(input: InputStream, title: String, version: String, sourceName: String): List<Document> {
+    fun load(input: InputStream, docId: String, version: String, filename: String, category: String = "document", fileSize: Long? = null): List<Document> {
         XMLSlideShow(input).use { show ->
             val docs = mutableListOf<Document>()
             show.slides.forEachIndexed { idx, slide ->
-                val slideName = "slide-${idx + 1}"
+                val pageNumber = idx + 1
                 // 본문 + 표
                 val body = buildString {
                     slide.shapes.forEach { sh ->
@@ -30,11 +30,15 @@ class PptxLoader {
                     docs += Document(
                         body,
                         mapOf(
-                            "source_type" to "pptx",
-                            "source" to sourceName,
-                            "title" to title,
+                            "docId" to docId,
                             "version" to version,
-                            "section" to slideName
+                            "category" to category,
+                            "fileSize" to fileSize,
+                            "filename" to filename,
+                            "uploadTime" to java.time.LocalDateTime.now().toString(),
+                            "contentType" to "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                            "lastUpdated" to System.currentTimeMillis(),
+                            "page_number" to pageNumber
                         )
                     )
                 }
@@ -44,11 +48,15 @@ class PptxLoader {
                     docs += Document(
                         notes,
                         mapOf(
-                            "source_type" to "pptx",
-                            "source" to sourceName,
-                            "title" to title,
+                            "docId" to docId,
                             "version" to version,
-                            "section" to "$slideName-notes"
+                            "category" to category,
+                            "fileSize" to fileSize,
+                            "filename" to filename,
+                            "uploadTime" to java.time.LocalDateTime.now().toString(),
+                            "contentType" to "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                            "lastUpdated" to System.currentTimeMillis(),
+                            "page_number" to pageNumber
                         )
                     )
                 }

@@ -1,4 +1,4 @@
-package org.mvp.policy.embedder.config
+package org.mvp.policy.embedder.shared.config
 
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.model.ChatModel
